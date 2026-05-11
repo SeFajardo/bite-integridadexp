@@ -39,8 +39,8 @@ data "aws_ami" "ubuntu_2404" {
 # ----------------------------------------------------------------------------
 # Security Groups
 # ----------------------------------------------------------------------------
-resource "aws_security_group" "sg_app" {
-  name        = "sg-app"
+resource "aws_security_group" "bite_app" {
+  name        = "bite-app"
   description = "Cloud Integrity Lab - app instance"
   vpc_id      = data.aws_vpc.default.id
 
@@ -68,8 +68,8 @@ resource "aws_security_group" "sg_app" {
   }
 }
 
-resource "aws_security_group" "sg_db" {
-  name        = "sg-db"
+resource "aws_security_group" "bite_db" {
+  name        = "bite-db"
   description = "Cloud Integrity Lab - PostgreSQL"
   vpc_id      = data.aws_vpc.default.id
 
@@ -86,7 +86,7 @@ resource "aws_security_group" "sg_db" {
     from_port       = 5432
     to_port         = 5432
     protocol        = "tcp"
-    security_groups = [aws_security_group.sg_app.id]
+    security_groups = [aws_security_group.bite_app.id]
   }
 
   egress {
@@ -104,7 +104,7 @@ resource "aws_instance" "cloud_integrity_db" {
   ami                    = data.aws_ami.ubuntu_2404.id
   instance_type          = "t2.micro"
   key_name               = var.key_name
-  vpc_security_group_ids = [aws_security_group.sg_db.id]
+  vpc_security_group_ids = [aws_security_group.bite_db.id]
 
   user_data = <<-EOF
     #!/bin/bash
@@ -137,7 +137,7 @@ resource "aws_instance" "cloud_integrity_app" {
   ami                    = data.aws_ami.ubuntu_2404.id
   instance_type          = "t2.micro"
   key_name               = var.key_name
-  vpc_security_group_ids = [aws_security_group.sg_app.id]
+  vpc_security_group_ids = [aws_security_group.bite_app.id]
 
   user_data = templatefile("${path.module}/user_data_app.sh", {
     db_host     = aws_instance.cloud_integrity_db.private_ip
